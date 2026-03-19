@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MASS — Workout Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080A0F;
+  --bg2: #0E1018;
+  --bg3: #151820;
+  --border: #1E2230;
+  --border2: #2A2F42;
+  --text: #E8EBF4;
+  --text2: #8892A4;
+  --text3: #4A5266;
+  --push: #E8453C;
+  --pull: #3C8AE8;
+  --legs: #3CE87A;
+  --upper: #A83CE8;
+  --accent: #F5C842;
+  --success: #3CE87A;
+  --danger: #E8453C;
+  --r: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,10,15,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.nav-logo { font-family: 'Bebas Neue', cursive; font-size: 1.6rem; letter-spacing: 3px; color: var(--accent); }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab {
+  padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; color: var(--text2); border: none; background: none;
+}
+.nav-tab:hover { color: var(--text); background: var(--bg3); }
+.nav-tab.active { color: var(--text); background: var(--bg3); }
+
+/* ── PAGES ── */
+.page { display: none; padding: 24px 20px; max-width: 800px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ── HEADER SÉANCE ── */
+.session-banner {
+  border-radius: var(--r); padding: 20px 24px; margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.session-banner h2 { font-family: 'Bebas Neue'; font-size: 2rem; letter-spacing: 2px; }
+.session-banner p { font-size: 0.82rem; opacity: 0.75; margin-top: 2px; }
+.banner-push { background: linear-gradient(135deg, #2a0c0b, #1a1218); border: 1px solid rgba(232,69,60,0.3); }
+.banner-pull { background: linear-gradient(135deg, #0b1a2a, #121218); border: 1px solid rgba(60,138,232,0.3); }
+.banner-legs { background: linear-gradient(135deg, #0b2a18, #121218); border: 1px solid rgba(60,232,122,0.3); }
+.banner-upper { background: linear-gradient(135deg, #1a0b2a, #181218); border: 1px solid rgba(168,60,232,0.3); }
+.badge-type {
+  padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.badge-push { background: rgba(232,69,60,0.15); color: var(--push); border: 1px solid rgba(232,69,60,0.3); }
+.badge-pull { background: rgba(60,138,232,0.15); color: var(--pull); border: 1px solid rgba(60,138,232,0.3); }
+.badge-legs { background: rgba(60,232,122,0.15); color: var(--legs); border: 1px solid rgba(60,232,122,0.3); }
+.badge-upper { background: rgba(168,60,232,0.15); color: var(--upper); border: 1px solid rgba(168,60,232,0.3); }
+
+/* ── SESSION PICKER ── */
+.session-picker { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.s-btn {
+  flex: 1; min-width: 120px; padding: 10px 8px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--bg2); cursor: pointer; font-size: 0.8rem; font-weight: 600;
+  color: var(--text2); transition: all 0.2s; text-align: center;
+}
+.s-btn:hover, .s-btn.active { color: var(--text); border-color: var(--border2); }
+.s-btn.push.active { border-color: var(--push); color: var(--push); background: rgba(232,69,60,0.08); }
+.s-btn.pull.active { border-color: var(--pull); color: var(--pull); background: rgba(60,138,232,0.08); }
+.s-btn.legs.active { border-color: var(--legs); color: var(--legs); background: rgba(60,232,122,0.08); }
+.s-btn.upper.active { border-color: var(--upper); color: var(--upper); background: rgba(168,60,232,0.08); }
+
+/* ── EXERCISE CARD ── */
+.ex-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r); margin-bottom: 12px; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.ex-card.done { border-color: rgba(60,232,122,0.3); }
+.ex-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; cursor: pointer; user-select: none;
+}
+.ex-header:hover { background: rgba(255,255,255,0.02); }
+.ex-name { font-weight: 700; font-size: 0.92rem; }
+.ex-meta { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+.ex-status { display: flex; align-items: center; gap: 8px; }
+.check-icon { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; transition: all 0.2s; }
+.check-icon.done { background: var(--success); border-color: var(--success); color: #000; }
+.pr-badge-small { font-size: 0.68rem; font-weight: 700; color: var(--accent); background: rgba(245,200,66,0.12); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(245,200,66,0.3); }
+
+.ex-body { padding: 0 16px 16px; border-top: 1px solid var(--border); display: none; }
+.ex-card.open .ex-body { display: block; }
+.ex-card.open .ex-header { border-bottom: 0; }
+
+/* ── SETS TABLE ── */
+.sets-header {
+  display: grid; grid-template-columns: 36px 1fr 1fr 1fr 80px; gap: 8px;
+  padding: 10px 0 6px; font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+.set-row {
+  display: grid; grid-template-columns: 36px 1fr 1fr 1fr 80px; gap: 8px;
+  align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border);
+}
+.set-row:last-child { border-bottom: none; }
+.set-num {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+  color: var(--text3); text-align: center;
+}
+input.set-input {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px;
+  color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+  padding: 7px 10px; width: 100%; text-align: center; outline: none; transition: border-color 0.2s;
+}
+input.set-input:focus { border-color: var(--accent); }
+input.set-input.pr-hit { border-color: var(--accent); background: rgba(245,200,66,0.05); }
+.set-done-btn {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px;
+  color: var(--text2); font-size: 0.78rem; font-weight: 600;
+  padding: 7px 10px; cursor: pointer; transition: all 0.2s; width: 100%; text-align: center;
+}
+.set-done-btn:hover { border-color: var(--success); color: var(--success); }
+.set-done-btn.validated { background: rgba(60,232,122,0.1); border-color: var(--success); color: var(--success); }
+
+/* ── PR DISPLAY ── */
+.pr-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg3); border-radius: 8px; padding: 10px 14px; margin-top: 12px;
+}
+.pr-label { font-size: 0.75rem; color: var(--text3); }
+.pr-value { font-family: 'JetBrains Mono'; font-size: 0.9rem; color: var(--accent); font-weight: 700; }
+.pr-update-btn {
+  font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(245,200,66,0.3);
+  background: rgba(245,200,66,0.08); color: var(--accent); cursor: pointer; transition: all 0.2s;
+}
+.pr-update-btn:hover { background: rgba(245,200,66,0.15); }
+
+/* ── TOAST ── */
+.session-note {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 14px 16px; margin-top: 16px;
+}
+.session-note label { font-size: 0.75rem; color: var(--text2); display: block; margin-bottom: 8px; }
+.session-note textarea {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+  padding: 10px 12px; resize: none; outline: none; height: 70px; transition: border-color 0.2s;
+}
+.session-note textarea:focus { border-color: var(--accent); }
+
+/* ── END BUTTON ── */
+.end-session-btn {
+  width: 100%; margin-top: 16px; padding: 14px;
+  border-radius: var(--r); border: none; font-family: 'Bebas Neue'; font-size: 1.3rem;
+  letter-spacing: 2px; cursor: pointer; transition: all 0.2s;
+  background: linear-gradient(135deg, var(--accent), #e0a500); color: #000;
+}
+.end-session-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+/* ── HISTORIQUE ── */
+.history-week-label {
+  font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text3); font-weight: 700; margin: 20px 0 10px 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.history-week-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+.history-entry {
+  border-radius: 14px; margin-bottom: 12px; overflow: hidden;
+  border: 1px solid var(--border); position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.history-entry:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
+
+/* colored top strip */
+.history-strip {
+  height: 4px; width: 100%;
+}
+.history-strip.push { background: linear-gradient(90deg, var(--push), transparent); }
+.history-strip.pull { background: linear-gradient(90deg, var(--pull), transparent); }
+.history-strip.legs,
+.history-strip.lower { background: linear-gradient(90deg, var(--legs), transparent); }
+.history-strip.upper { background: linear-gradient(90deg, var(--upper), transparent); }
+
+.history-card-top {
+  background: var(--bg2); padding: 14px 16px 12px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  cursor: pointer;
+}
+.history-card-top:hover { background: rgba(255,255,255,0.015); }
+
+.history-type-badge {
+  font-family: 'Bebas Neue'; font-size: 1.05rem; letter-spacing: 2px;
+  display: flex; align-items: center; gap: 8px;
+}
+.history-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+.history-dot.push { background: var(--push); box-shadow: 0 0 8px var(--push); }
+.history-dot.pull { background: var(--pull); box-shadow: 0 0 8px var(--pull); }
+.history-dot.legs,
+.history-dot.lower { background: var(--legs); box-shadow: 0 0 8px var(--legs); }
+.history-dot.upper { background: var(--upper); box-shadow: 0 0 8px var(--upper); }
+
+.history-date { font-size: 0.72rem; color: var(--text3); margin-top: 3px; }
+
+.history-quick-stats {
+  display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;
+}
+.hqs {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--bg3); border-radius: 8px; padding: 6px 12px; min-width: 60px;
+}
+.hqs-val { font-family: 'Bebas Neue'; font-size: 1.1rem; letter-spacing: 1px; line-height: 1; }
+.hqs-label { font-size: 0.6rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+.history-ex-chips {
+  display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 16px 12px;
+  background: var(--bg2); border-top: 1px solid var(--border);
+}
+.ex-chip {
+  font-size: 0.72rem; padding: 3px 10px; border-radius: 20px;
+  background: var(--bg3); border: 1px solid var(--border2); color: var(--text2);
+}
+
+.history-body {
+  display: none; background: var(--bg2); border-top: 1px solid var(--border);
+}
+.history-entry.open .history-body { display: block; }
+
+.history-ex-row {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+}
+.history-ex-row:last-child { border-bottom: none; }
+.history-ex-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; color: var(--text); }
+.history-sets-grid {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.set-pill {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 5px 10px; display: flex; flex-direction: column; align-items: center; min-width: 64px;
+}
+.set-pill-kg { font-family: 'JetBrains Mono'; font-size: 0.88rem; font-weight: 700; color: var(--accent); }
+.set-pill-reps { font-size: 0.65rem; color: var(--text3); margin-top: 1px; }
+.set-pill-vol { font-size: 0.62rem; color: var(--text3); font-family: 'JetBrains Mono'; }
+
+.history-notes-row {
+  padding: 10px 16px; background: rgba(245,200,66,0.04);
+  border-top: 1px solid var(--border); display: flex; align-items: flex-start; gap: 8px;
+}
+.history-notes-icon { font-size: 0.8rem; margin-top: 1px; }
+.history-notes-text { font-size: 0.78rem; color: var(--text2); font-style: italic; line-height: 1.4; }
+
+.history-card-actions {
+  display: flex; justify-content: flex-end; padding: 10px 16px;
+  background: var(--bg2); border-top: 1px solid var(--border);
+}
+.delete-btn {
+  font-size: 0.72rem; padding: 5px 12px; border-radius: 6px;
+  border: 1px solid rgba(232,69,60,0.25); background: transparent;
+  color: var(--text3); cursor: pointer; transition: all 0.2s;
+}
+.delete-btn:hover { border-color: var(--danger); color: var(--danger); background: rgba(232,69,60,0.06); }
+
+.history-chevron {
+  font-size: 0.75rem; color: var(--text3); transition: transform 0.2s; flex-shrink: 0; margin-top: 2px;
+}
+.history-entry.open .history-chevron { transform: rotate(180deg); }
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 16px;
+}
+.stat-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.stat-value { font-family: 'Bebas Neue'; font-size: 2rem; letter-spacing: 1px; color: var(--text); }
+.stat-sub { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
+
+.chart-wrapper {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 16px; margin-bottom: 16px;
+}
+.chart-title { font-size: 0.75rem; color: var(--text2); margin-bottom: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.chart-ex-select {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px;
+  color: var(--text); padding: 6px 10px; font-size: 0.8rem; outline: none; margin-bottom: 12px; width: 100%;
+}
+.mini-chart { height: 100px; position: relative; display: flex; align-items: flex-end; gap: 4px; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.3s; opacity: 0.8; }
+.bar-label { font-size: 0.6rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; }
+.bar-val { font-family: 'JetBrains Mono'; font-size: 0.65rem; color: var(--text2); }
+
+.pr-table { width: 100%; }
+.pr-table th { font-size: 0.7rem; color: var(--text3); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+.pr-table td { font-size: 0.82rem; padding: 8px 8px; border-bottom: 1px solid var(--border); }
+.pr-table tr:last-child td { border-bottom: none; }
+.pr-table .pr-kg { font-family: 'JetBrains Mono'; color: var(--accent); font-weight: 700; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500;
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px;
+  padding: 24px; width: 90%; max-width: 400px;
+}
+.modal h3 { font-family: 'Bebas Neue'; font-size: 1.4rem; letter-spacing: 2px; margin-bottom: 4px; }
+.modal p { font-size: 0.82rem; color: var(--text2); margin-bottom: 16px; }
+.modal input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--text); font-family: 'JetBrains Mono'; font-size: 1.2rem;
+  padding: 12px; outline: none; text-align: center; margin-bottom: 12px;
+}
+.modal input:focus { border-color: var(--accent); }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btn {
+  flex: 1; padding: 10px; border-radius: 8px; border: none; cursor: pointer;
+  font-weight: 700; font-size: 0.85rem; transition: all 0.2s;
+}
+.modal-btn.cancel { background: var(--bg3); color: var(--text2); }
+.modal-btn.cancel:hover { color: var(--text); }
+.modal-btn.confirm { background: var(--accent); color: #000; }
+.modal-btn.confirm:hover { opacity: 0.85; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  padding: 10px 18px; font-size: 0.82rem; font-weight: 600;
+  opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 300; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.pr { border-color: var(--accent); color: var(--accent); }
+.toast.good { border-color: var(--success); color: var(--success); }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 48px 20px; color: var(--text3); }
+.empty .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+.empty p { font-size: 0.85rem; }
+
+/* ── IN-CARD TIMER ── */
+.card-timer {
+  display: none; /* hidden by default, shown when active */
+  align-items: center; gap: 16px;
+  background: var(--bg3); border-radius: 10px;
+  padding: 14px 18px; margin: 12px 0 4px;
+  border: 1px solid var(--border2);
+  transition: all 0.3s;
+}
+.card-timer.active { display: flex; }
+.card-timer.urgent { border-color: rgba(232,69,60,0.5); background: rgba(232,69,60,0.06); }
+
+.timer-ring-wrap { position: relative; width: 68px; height: 68px; flex-shrink: 0; }
+.timer-ring-wrap svg { transform: rotate(-90deg); }
+.timer-ring-bg { fill: none; stroke: var(--border2); stroke-width: 5; }
+.timer-ring-fill { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s linear; }
+.timer-ring-fill.urgent { stroke: var(--danger); }
+.timer-ring-label {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.timer-ring-time { font-family: 'Bebas Neue'; font-size: 1.3rem; letter-spacing: 1px; line-height: 1; }
+.timer-ring-time.urgent { color: var(--danger); animation: blink 0.6s infinite alternate; }
+@keyframes blink { from { opacity:1; } to { opacity:0.4; } }
+.timer-ring-sub { font-size: 0.6rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.timer-info { flex: 1; }
+.timer-info-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.timer-info-set { font-size: 0.82rem; color: var(--text2); }
+.timer-info-set strong { color: var(--text); }
+
+.timer-ctrl-btns { display: flex; flex-direction: column; gap: 6px; }
+.timer-ctrl-btn {
+  padding: 6px 12px; border-radius: 7px; border: 1px solid var(--border2);
+  background: var(--bg2); color: var(--text2); font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap; text-align: center;
+}
+.timer-ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+.timer-ctrl-btn.skip-btn { border-color: rgba(60,232,122,0.3); color: var(--success); }
+.timer-ctrl-btn.skip-btn:hover { background: rgba(60,232,122,0.08); }
+
+.timer-done-flash {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: 'Bebas Neue'; font-size: 1.2rem; letter-spacing: 2px;
+  color: var(--success); padding: 4px 0;
+}
+
+/* ── EDIT DRAWER ── */
+.edit-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 600;
+  display: none; align-items: flex-end; justify-content: center;
+}
+.edit-overlay.open { display: flex; }
+.edit-drawer {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 18px 18px 0 0; width: 100%; max-width: 600px;
+  max-height: 90vh; overflow-y: auto;
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+}
+.edit-overlay.open .edit-drawer { transform: translateY(0); }
+.edit-drawer-handle {
+  width: 40px; height: 4px; background: var(--border2); border-radius: 2px;
+  margin: 12px auto 0;
+}
+.edit-drawer-header {
+  padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.edit-drawer-title { font-family: 'Bebas Neue'; font-size: 1.3rem; letter-spacing: 2px; }
+.edit-drawer-close {
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border2);
+  background: var(--bg3); color: var(--text2); cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.edit-drawer-close:hover { border-color: var(--danger); color: var(--danger); }
+
+.edit-section { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.edit-section-title {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text3); font-weight: 700; margin-bottom: 12px;
+}
+.edit-ex-name {
+  font-weight: 700; font-size: 0.9rem; color: var(--text); margin-bottom: 10px;
+}
+.edit-set-row {
+  display: grid; grid-template-columns: 28px 1fr 1fr 32px; gap: 8px;
+  align-items: center; margin-bottom: 8px;
+}
+.edit-set-num { font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--text3); text-align: center; }
+.edit-input {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--text); font-family: 'JetBrains Mono'; font-size: 0.88rem;
+  padding: 7px 8px; width: 100%; text-align: center; outline: none; transition: border-color 0.2s;
+}
+.edit-input:focus { border-color: var(--accent); }
+.edit-del-set {
+  width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(232,69,60,0.25);
+  background: transparent; color: var(--text3); cursor: pointer; font-size: 0.8rem;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.edit-del-set:hover { border-color: var(--danger); color: var(--danger); background: rgba(232,69,60,0.08); }
+.edit-add-set-btn {
+  width: 100%; padding: 7px; border-radius: 7px; border: 1px dashed var(--border2);
+  background: transparent; color: var(--text3); font-size: 0.78rem; cursor: pointer;
+  transition: all 0.2s; margin-top: 4px;
+}
+.edit-add-set-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.edit-notes-input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+  padding: 10px 12px; resize: none; outline: none; height: 70px; transition: border-color 0.2s;
+}
+.edit-notes-input:focus { border-color: var(--accent); }
+
+.edit-date-input {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+  color: var(--text); font-family: 'JetBrains Mono'; font-size: 0.88rem;
+  padding: 8px 12px; outline: none; transition: border-color 0.2s; width: 160px;
+}
+.edit-date-input:focus { border-color: var(--accent); }
+
+.edit-save-btn {
+  width: calc(100% - 40px); margin: 16px 20px; padding: 13px;
+  border-radius: 10px; border: none; font-family: 'Bebas Neue'; font-size: 1.2rem;
+  letter-spacing: 2px; cursor: pointer; background: linear-gradient(135deg, var(--accent), #e0a500);
+  color: #000; transition: opacity 0.2s;
+}
+.edit-save-btn:hover { opacity: 0.85; }
+
+/* PR edit inline */
+.pr-edit-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.pr-edit-row:last-child { border-bottom: none; }
+.pr-edit-name { flex: 1; font-size: 0.82rem; }
+.pr-edit-input {
+  width: 80px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 7px;
+  color: var(--accent); font-family: 'JetBrains Mono'; font-size: 0.88rem; font-weight: 700;
+  padding: 5px 8px; text-align: center; outline: none; transition: border-color 0.2s;
+}
+.pr-edit-input:focus { border-color: var(--accent); }
+.pr-save-inline {
+  padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(60,232,122,0.3);
+  background: rgba(60,232,122,0.06); color: var(--success); font-size: 0.75rem;
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.pr-save-inline:hover { background: rgba(60,232,122,0.15); }
+.pr-del-btn {
+  padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(232,69,60,0.2);
+  background: transparent; color: var(--text3); font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+}
+.pr-del-btn:hover { border-color: var(--danger); color: var(--danger); background: rgba(232,69,60,0.08); }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .sets-header, .set-row { grid-template-columns: 28px 1fr 1fr 1fr 64px; gap: 5px; font-size: 0.72rem; }
+  nav { padding: 0 12px; }
+  .nav-tab { padding: 5px 8px; font-size: 0.72rem; }
+  .page { padding: 16px 12px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">MASS</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('seance')">Séance</button>
+    <button class="nav-tab" onclick="showPage('historique')">Historique</button>
+    <button class="nav-tab" onclick="showPage('stats')">Stats</button>
+  </div>
+</nav>
+
+<!-- ══════════ PAGE SÉANCE ══════════ -->
+<div class="page active" id="page-seance">
+  <div class="session-picker">
+    <button class="s-btn push active" onclick="selectSession('push', this)">🔴 PUSH<br><small>Pec · Épaules · Tri</small></button>
+    <button class="s-btn pull" onclick="selectSession('pull', this)">🔵 PULL<br><small>Dos · Biceps</small></button>
+    <button class="s-btn legs" onclick="selectSession('legs', this)">🟢 LEGS<br><small>Quadri · Ischio</small></button>
+    <button class="s-btn upper" onclick="selectSession('upper', this)">🟣 UPPER<br><small>Haut complet</small></button>
+    <button class="s-btn legs" onclick="selectSession('lower', this)">🟢 LOWER<br><small>Bas complet</small></button>
+  </div>
+
+  <div id="session-content"></div>
+</div>
+
+<!-- ══════════ PAGE HISTORIQUE ══════════ -->
+<div class="page" id="page-historique">
+  <h2 style="font-family:'Bebas Neue';font-size:1.8rem;letter-spacing:2px;margin-bottom:16px;">Historique</h2>
+  <div id="history-list"></div>
+</div>
+
+<!-- ══════════ PAGE STATS ══════════ -->
+<div class="page" id="page-stats">
+  <h2 style="font-family:'Bebas Neue';font-size:1.8rem;letter-spacing:2px;margin-bottom:16px;">Statistiques</h2>
+  <div class="stats-grid" id="global-stats"></div>
+  <div class="chart-wrapper">
+    <div class="chart-title">📈 Progression charge (kg)</div>
+    <select class="chart-ex-select" id="chart-ex-select" onchange="renderChart()">
+      <option value="">— Choisir un exercice —</option>
+    </select>
+    <div class="mini-chart" id="mini-chart"></div>
+  </div>
+  <div class="chart-wrapper">
+    <div class="chart-title">🏆 Records personnels (PR)</div>
+    <table class="pr-table" id="pr-table">
+      <thead><tr><th>Exercice</th><th>PR (kg)</th><th>Date</th><th></th></tr></thead>
+      <tbody id="pr-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+
+
+<!-- ══════════ MODAL PR ══════════ -->
+<div class="modal-overlay" id="pr-modal">
+  <div class="modal">
+    <h3>🏆 NOUVEAU PR</h3>
+    <p id="pr-modal-text">Tu bats ton record ! Enregistre ton nouveau PR :</p>
+    <input type="number" id="pr-modal-input" placeholder="Charge en kg" step="0.5">
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closePrModal()">Annuler</button>
+      <button class="modal-btn confirm" onclick="confirmPr()">💪 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EDIT DRAWER ══════════ -->
+<div class="edit-overlay" id="edit-overlay" onclick="closeEditDrawer(event)">
+  <div class="edit-drawer" id="edit-drawer">
+    <div class="edit-drawer-handle"></div>
+    <div class="edit-drawer-header">
+      <div class="edit-drawer-title" id="edit-drawer-title">✏️ MODIFIER LA SÉANCE</div>
+      <button class="edit-drawer-close" onclick="closeEditDrawerDirect()">✕</button>
+    </div>
+    <div id="edit-drawer-body"></div>
+    <button class="edit-save-btn" onclick="saveEdits()">✓ ENREGISTRER LES MODIFICATIONS</button>
+    <div style="height:16px"></div>
+  </div>
+</div>
+
+<!-- ══════════ TOAST ══════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const SESSIONS = {
+  push: {
+    label: 'PUSH', sub: 'Poitrine · Épaules · Triceps',
+    color: 'push', restDefault: 120,
+    exercises: [
+      { id: 'bench_press',   name: 'Développé couché barre',      sets: 4, reps: '5–8',    rest: 180 },
+      { id: 'incline_db',    name: 'Développé incliné haltères',  sets: 3, reps: '8–12',   rest: 120 },
+      { id: 'ohp',           name: 'Développé militaire barre',   sets: 4, reps: '6–10',   rest: 150 },
+      { id: 'lat_raise',     name: 'Élévations latérales',        sets: 3, reps: '12–15',  rest: 90  },
+      { id: 'dips',          name: 'Dips lestés',                 sets: 3, reps: '8–12',   rest: 120 },
+      { id: 'tricep_ext',    name: 'Extensions triceps poulie',   sets: 3, reps: '12–15',  rest: 60  },
+    ]
+  },
+  pull: {
+    label: 'PULL', sub: 'Dos · Biceps · Trapèzes',
+    color: 'pull', restDefault: 120,
+    exercises: [
+      { id: 'deadlift',      name: 'Soulevé de terre',            sets: 4, reps: '4–6',    rest: 240 },
+      { id: 'weighted_pull', name: 'Tractions lestées',           sets: 4, reps: '5–10',   rest: 150 },
+      { id: 'bent_row',      name: 'Rowing barre (Yates)',        sets: 3, reps: '8–10',   rest: 120 },
+      { id: 'lat_pulldown',  name: 'Tirage vertical poulie',      sets: 3, reps: '10–12',  rest: 90  },
+      { id: 'curl_ez',       name: 'Curl barre EZ',               sets: 3, reps: '8–12',   rest: 90  },
+      { id: 'hammer_curl',   name: 'Curl marteau haltères',       sets: 3, reps: '10–14',  rest: 60  },
+    ]
+  },
+  legs: {
+    label: 'LEGS', sub: 'Quadriceps · Ischio · Fessiers · Mollets',
+    color: 'legs', restDefault: 120,
+    exercises: [
+      { id: 'squat',         name: 'Squat barre',                 sets: 4, reps: '5–8',    rest: 240 },
+      { id: 'leg_press',     name: 'Presse à cuisses',            sets: 3, reps: '10–15',  rest: 120 },
+      { id: 'rdl',           name: 'Romanian Deadlift',           sets: 3, reps: '8–12',   rest: 120 },
+      { id: 'leg_curl',      name: 'Leg curl couché',             sets: 3, reps: '12–15',  rest: 90  },
+      { id: 'lunge',         name: 'Fentes marchées haltères',    sets: 3, reps: '10/jambe',rest: 90 },
+      { id: 'calf_standing', name: 'Mollets debout',              sets: 4, reps: '12–20',  rest: 60  },
+    ]
+  },
+  upper: {
+    label: 'UPPER', sub: 'Haut du corps complet',
+    color: 'upper', restDefault: 90,
+    exercises: [
+      { id: 'incline_bar',   name: 'Développé incliné barre',     sets: 3, reps: '6–10',   rest: 150 },
+      { id: 'db_row',        name: 'Rowing haltère unilatéral',   sets: 3, reps: '8–12',   rest: 120 },
+      { id: 'db_press',      name: 'Développé épaules haltères',  sets: 3, reps: '10–12',  rest: 90  },
+      { id: 'cable_row',     name: 'Tirage horizontal poulie',    sets: 3, reps: '10–12',  rest: 90  },
+      { id: 'incline_curl',  name: 'Curl incliné haltères',       sets: 3, reps: '10–12',  rest: 90  },
+      { id: 'skull_crusher', name: 'Skull crushers EZ',           sets: 3, reps: '10–12',  rest: 90  },
+      { id: 'face_pull',     name: 'Face pulls poulie',           sets: 3, reps: '15–20',  rest: 60  },
+    ]
+  },
+  lower: {
+    label: 'LOWER', sub: 'Bas du corps complet',
+    color: 'legs', restDefault: 90,
+    exercises: [
+      { id: 'hack_squat',    name: 'Squat gobelet / Hack squat',  sets: 4, reps: '8–12',   rest: 150 },
+      { id: 'hip_thrust',    name: 'Hip Thrust barre',            sets: 4, reps: '8–12',   rest: 120 },
+      { id: 'leg_ext',       name: 'Leg extension',               sets: 3, reps: '12–15',  rest: 90  },
+      { id: 'leg_curl_sit',  name: 'Leg curl assis',              sets: 3, reps: '12–15',  rest: 90  },
+      { id: 'abductor',      name: 'Abducteurs machine',          sets: 3, reps: '15–20',  rest: 60  },
+      { id: 'calf_seated',   name: 'Mollets assis',               sets: 4, reps: '15–20',  rest: 60  },
+    ]
+  }
+};
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let currentSession = 'push';
+let sessionData = {}; // { exId: { sets: [{kg, reps, done}] } }
+let prs = JSON.parse(localStorage.getItem('mass_prs') || '{}');
+let history = JSON.parse(localStorage.getItem('mass_history') || '[]');
+
+// Timer — in-card per exercise
+let cardTimers = {}; // { exId: { interval, total, remaining } }
+let pendingPrData = null;
+
+// ══════════════════════════════════════════
+// RENDER SESSION
+// ══════════════════════════════════════════
+function selectSession(key, btn) {
+  currentSession = key;
+  sessionData = {};
+  document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active','push','pull','legs','upper'));
+  const s = SESSIONS[key];
+  btn.classList.add('active', s.color);
+  renderSession();
+}
+
+function renderSession() {
+  const s = SESSIONS[currentSession];
+  const col = s.color;
+  let html = `
+    <div class="session-banner banner-${col}">
+      <div>
+        <h2>${s.label}</h2>
+        <p>${s.sub}</p>
+      </div>
+      <span class="badge-type badge-${col}">${s.label}</span>
+    </div>`;
+
+  s.exercises.forEach((ex, idx) => {
+    const pr = prs[ex.id];
+    const prLabel = pr ? `PR: ${pr.kg}kg` : 'Pas de PR';
+    const isFirst = idx === 0;
+    html += `
+    <div class="ex-card ${isFirst ? 'open' : ''}" id="excard-${ex.id}">
+      <div class="ex-header" onclick="toggleEx('${ex.id}')">
+        <div>
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-meta">${ex.sets} séries · ${ex.reps} reps · repos ${formatTime(ex.rest)}</div>
+        </div>
+        <div class="ex-status">
+          ${pr ? `<span class="pr-badge-small">PR ${pr.kg}kg</span>` : ''}
+          <div class="check-icon" id="check-${ex.id}">✓</div>
+        </div>
+      </div>
+      <div class="ex-body">
+        <div class="sets-header">
+          <span>#</span><span>Charge (kg)</span><span>Reps</span><span>Vol.</span><span>Valider</span>
+        </div>
+        ${buildSetsRows(ex)}
+        <div class="card-timer" id="ctimer-${ex.id}">
+          <div class="timer-ring-wrap">
+            <svg width="68" height="68" viewBox="0 0 68 68">
+              <circle class="timer-ring-bg" cx="34" cy="34" r="29"/>
+              <circle class="timer-ring-fill" id="cring-${ex.id}" cx="34" cy="34" r="29"
+                stroke-dasharray="182" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-ring-label">
+              <div class="timer-ring-time" id="ctime-${ex.id}">—</div>
+              <div class="timer-ring-sub">repos</div>
+            </div>
+          </div>
+          <div class="timer-info">
+            <div class="timer-info-label">⏱ Temps de repos</div>
+            <div class="timer-info-set" id="cinfo-${ex.id}">Série terminée</div>
+          </div>
+          <div class="timer-ctrl-btns">
+            <button class="timer-ctrl-btn" onclick="addTime('${ex.id}', 30)">+30s</button>
+            <button class="timer-ctrl-btn skip-btn" onclick="skipCardTimer('${ex.id}')">Skip ✓</button>
+          </div>
+        </div>
+        <div class="pr-row">
+          <div>
+            <div class="pr-label">Record personnel</div>
+            <div class="pr-value" id="pr-display-${ex.id}">${pr ? pr.kg + ' kg — ' + pr.date : '—'}</div>
+          </div>
+          <button class="pr-update-btn" onclick="openPrModal('${ex.id}', '${ex.name}')">✏️ Saisir PR</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += `
+    <div class="session-note">
+      <label>📝 Notes de séance</label>
+      <textarea id="session-notes" placeholder="Ressenti, fatigue, remarques..."></textarea>
+    </div>
+    <button class="end-session-btn" onclick="endSession()">✓ TERMINER LA SÉANCE</button>
+    <div style="height:80px"></div>`;
+
+  document.getElementById('session-content').innerHTML = html;
+  initSessionData();
+}
+
+function buildSetsRows(ex) {
+  let html = '';
+  for (let i = 1; i <= ex.sets; i++) {
+    html += `
+    <div class="set-row" id="setrow-${ex.id}-${i}">
+      <span class="set-num">${i}</span>
+      <input class="set-input" id="kg-${ex.id}-${i}" type="number" placeholder="—" step="0.5" min="0"
+        oninput="calcVolume('${ex.id}',${i})" onfocus="this.select()">
+      <input class="set-input" id="rep-${ex.id}-${i}" type="number" placeholder="—" step="1" min="0"
+        oninput="calcVolume('${ex.id}',${i})" onfocus="this.select()">
+      <input class="set-input" id="vol-${ex.id}-${i}" type="text" placeholder="—" readonly tabindex="-1" style="color:var(--text3);cursor:default">
+      <button class="set-done-btn" id="done-${ex.id}-${i}" onclick="validateSet('${ex.id}',${i},${ex.rest})">✓</button>
+    </div>`;
+  }
+  return html;
+}
+
+function initSessionData() {
+  const s = SESSIONS[currentSession];
+  s.exercises.forEach(ex => {
+    sessionData[ex.id] = { sets: [] };
+    for (let i = 1; i <= ex.sets; i++) {
+      sessionData[ex.id].sets.push({ kg: null, reps: null, done: false });
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// SET LOGIC
+// ══════════════════════════════════════════
+function calcVolume(exId, setIdx) {
+  const kg = parseFloat(document.getElementById(`kg-${exId}-${setIdx}`)?.value) || 0;
+  const rep = parseFloat(document.getElementById(`rep-${exId}-${setIdx}`)?.value) || 0;
+  const volEl = document.getElementById(`vol-${exId}-${setIdx}`);
+  if (volEl) volEl.value = kg && rep ? (kg * rep).toFixed(0) + ' kg' : '—';
+}
+
+function validateSet(exId, setIdx, restTime) {
+  const kgEl = document.getElementById(`kg-${exId}-${setIdx}`);
+  const repEl = document.getElementById(`rep-${exId}-${setIdx}`);
+  const doneBtn = document.getElementById(`done-${exId}-${setIdx}`);
+
+  const kg = parseFloat(kgEl?.value);
+  const rep = parseFloat(repEl?.value);
+
+  if (!kg || !rep) { showToast('Saisis kg et reps !', ''); return; }
+
+  sessionData[exId].sets[setIdx - 1] = { kg, reps: rep, done: true };
+  doneBtn.classList.add('validated');
+  doneBtn.textContent = '✓ Ok';
+
+  // Check PR
+  const pr = prs[exId];
+  if (!pr || kg > pr.kg) {
+    pendingPrData = { exId, kg, date: todayStr() };
+    const exName = SESSIONS[currentSession].exercises.find(e => e.id === exId)?.name;
+    document.getElementById('pr-modal-text').textContent =
+      `🔥 ${kg}kg sur "${exName}" — c'est ton nouveau record !`;
+    document.getElementById('pr-modal-input').value = kg;
+    document.getElementById('pr-modal').classList.add('open');
+  }
+
+  checkExDone(exId);
+  startCardTimer(exId, restTime, setIdx);
+}
+
+function checkExDone(exId) {
+  const sd = sessionData[exId];
+  if (!sd) return;
+  const allDone = sd.sets.every(s => s.done);
+  const check = document.getElementById(`check-${exId}`);
+  if (check) check.classList.toggle('done', allDone);
+  const card = document.getElementById(`excard-${exId}`);
+  if (card) card.classList.toggle('done', allDone);
+}
+
+// ══════════════════════════════════════════
+// IN-CARD TIMER
+// ══════════════════════════════════════════
+const CIRC = 2 * Math.PI * 29; // 182.2
+
+function startCardTimer(exId, seconds, setIdx) {
+  // Stop any existing timer for this exercise
+  if (cardTimers[exId]?.interval) clearInterval(cardTimers[exId].interval);
+
+  cardTimers[exId] = { total: seconds, remaining: seconds, interval: null };
+
+  const card = document.getElementById(`excard-${exId}`);
+  if (card && !card.classList.contains('open')) card.classList.add('open');
+
+  const timerEl = document.getElementById(`ctimer-${exId}`);
+  const timeEl = document.getElementById(`ctime-${exId}`);
+  const ringEl = document.getElementById(`cring-${exId}`);
+  const infoEl = document.getElementById(`cinfo-${exId}`);
+
+  if (!timerEl) return;
+  timerEl.classList.add('active');
+  timerEl.classList.remove('urgent');
+
+  const updateDisplay = () => {
+    const { remaining, total } = cardTimers[exId];
+    const pct = remaining / total;
+    const offset = CIRC * (1 - pct);
+
+    timeEl.textContent = formatTime(remaining);
+    ringEl.style.strokeDashoffset = offset;
+
+    const urgent = remaining <= 10 && remaining > 0;
+    timeEl.classList.toggle('urgent', urgent);
+    ringEl.classList.toggle('urgent', urgent);
+    timerEl.classList.toggle('urgent', urgent);
+
+    infoEl.innerHTML = remaining > 0
+      ? `Après série <strong>${setIdx}</strong> — encore <strong>${formatTime(remaining)}</strong>`
+      : `<span class="timer-done-flash">🟢 GO — Série ${setIdx + 1} !</span>`;
+  };
+
+  updateDisplay();
+
+  cardTimers[exId].interval = setInterval(() => {
+    cardTimers[exId].remaining--;
+    updateDisplay();
+    if (cardTimers[exId].remaining <= 0) {
+      clearInterval(cardTimers[exId].interval);
+      // Vibrate if supported
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      showToast('⏰ Repos terminé — Prochaine série !', 'good');
+      // Auto-hide after 4s
+      setTimeout(() => hideCardTimer(exId), 4000);
+    }
+  }, 1000);
+}
+
+function hideCardTimer(exId) {
+  const timerEl = document.getElementById(`ctimer-${exId}`);
+  if (timerEl) { timerEl.classList.remove('active', 'urgent'); }
+  if (cardTimers[exId]?.interval) clearInterval(cardTimers[exId].interval);
+}
+
+function skipCardTimer(exId) {
+  hideCardTimer(exId);
+  showToast('Repos ignoré ✓', '');
+}
+
+function addTime(exId, seconds) {
+  if (!cardTimers[exId]) return;
+  cardTimers[exId].remaining += seconds;
+  cardTimers[exId].total += seconds;
+  // re-render immediately
+  const timeEl = document.getElementById(`ctime-${exId}`);
+  if (timeEl) timeEl.textContent = formatTime(cardTimers[exId].remaining);
+  showToast(`+${seconds}s ajoutées`, '');
+}
+
+// ══════════════════════════════════════════
+// PR MODAL
+// ══════════════════════════════════════════
+function openPrModal(exId, exName) {
+  pendingPrData = { exId, kg: prs[exId]?.kg || '', date: todayStr() };
+  document.getElementById('pr-modal-text').textContent = `Saisis ton record personnel pour "${exName}" :`;
+  document.getElementById('pr-modal-input').value = prs[exId]?.kg || '';
+  document.getElementById('pr-modal').classList.add('open');
+}
+
+function closePrModal() {
+  document.getElementById('pr-modal').classList.remove('open');
+  pendingPrData = null;
+}
+
+function confirmPr() {
+  if (!pendingPrData) return;
+  const val = parseFloat(document.getElementById('pr-modal-input').value);
+  if (!val || val <= 0) { showToast('Saisis un poids valide', ''); return; }
+  const { exId, date } = pendingPrData;
+  prs[exId] = { kg: val, date };
+  localStorage.setItem('mass_prs', JSON.stringify(prs));
+  // Update display
+  const prEl = document.getElementById(`pr-display-${exId}`);
+  if (prEl) prEl.textContent = `${val} kg — ${date}`;
+  closePrModal();
+  showToast(`🏆 PR enregistré : ${val} kg !`, 'pr');
+}
+
+// ══════════════════════════════════════════
+// END SESSION
+// ══════════════════════════════════════════
+function endSession() {
+  const s = SESSIONS[currentSession];
+  const notes = document.getElementById('session-notes')?.value || '';
+  const sets = {};
+  let hasData = false;
+
+  s.exercises.forEach(ex => {
+    const done = (sessionData[ex.id]?.sets || []).filter(st => st.done);
+    if (done.length) { sets[ex.id] = { name: ex.name, sets: done }; hasData = true; }
+  });
+
+  if (!hasData) { showToast('Aucune série validée !', ''); return; }
+
+  const entry = {
+    id: Date.now(),
+    session: currentSession,
+    label: s.label,
+    date: todayStr(),
+    notes,
+    exercises: sets
+  };
+
+  history.unshift(entry);
+  localStorage.setItem('mass_history', JSON.stringify(history));
+  showToast('✓ Séance enregistrée !', 'good');
+
+  // Reset session
+  setTimeout(() => {
+    initSessionData();
+    renderSession();
+    document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('active','push','pull','legs','upper'));
+    document.querySelector(`.s-btn.${SESSIONS[currentSession].color}`).classList.add('active', SESSIONS[currentSession].color);
+  }, 500);
+}
+
+// ══════════════════════════════════════════
+// HISTORY PAGE
+// ══════════════════════════════════════════
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!history.length) {
+    el.innerHTML = `<div class="empty" style="padding:60px 20px">
+      <div class="icon" style="font-size:3.5rem;margin-bottom:16px">🏋️</div>
+      <p style="font-size:1rem;color:var(--text2);margin-bottom:6px">Aucune séance enregistrée</p>
+      <p style="font-size:0.8rem">Lance ta première séance pour voir ton historique ici.</p>
+    </div>`;
+    return;
+  }
+
+  const SESSION_COLORS = { push: '#E8453C', pull: '#3C8AE8', legs: '#3CE87A', lower: '#3CE87A', upper: '#A83CE8' };
+  const SESSION_EMOJI = { push: '🔴', pull: '🔵', legs: '🟢', lower: '🟢', upper: '🟣' };
+
+  // Group by week
+  const grouped = {};
+  history.forEach(entry => {
+    const d = parseDate(entry.date);
+    const monday = getMonday(d);
+    const key = monday.toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(entry);
+  });
+
+  let html = '';
+  Object.entries(grouped).forEach(([week, entries]) => {
+    html += `<div class="history-week-label">Semaine du ${week}</div>`;
+    entries.forEach(entry => {
+      const col = entry.session;
+      const color = SESSION_COLORS[col] || '#fff';
+      const emoji = SESSION_EMOJI[col] || '⚪';
+      const exVals = Object.values(entry.exercises);
+
+      // Quick stats
+      const totalSets = exVals.reduce((a, ex) => a + ex.sets.length, 0);
+      const totalVol = exVals.reduce((a, ex) => a + ex.sets.reduce((s, st) => s + st.kg * st.reps, 0), 0);
+      const maxKg = Math.max(...exVals.flatMap(ex => ex.sets.map(s => s.kg)));
+      const nbEx = exVals.length;
+
+      // Exercise chips
+      const chips = exVals.map(ex => `<span class="ex-chip">${ex.name}</span>`).join('');
+
+      // Body: sets as pills
+      const exRows = exVals.map(ex => {
+        const pills = ex.sets.map((s, j) => `
+          <div class="set-pill">
+            <div class="set-pill-kg">${s.kg}kg</div>
+            <div class="set-pill-reps">× ${s.reps} reps</div>
+            <div class="set-pill-vol">${(s.kg * s.reps).toFixed(0)}kg</div>
+          </div>`).join('');
+        return `<div class="history-ex-row">
+          <div class="history-ex-name">${ex.name}</div>
+          <div class="history-sets-grid">${pills}</div>
+        </div>`;
+      }).join('');
+
+      html += `
+      <div class="history-entry" id="hentry-${entry.id}">
+        <div class="history-strip ${col}"></div>
+        <div class="history-card-top" onclick="toggleHistory(${entry.id})">
+          <div style="flex:1">
+            <div class="history-type-badge">
+              <div class="history-dot ${col}"></div>
+              ${emoji} ${entry.label}
+            </div>
+            <div class="history-date">${entry.date}</div>
+            <div class="history-quick-stats">
+              <div class="hqs">
+                <div class="hqs-val" style="color:${color}">${nbEx}</div>
+                <div class="hqs-label">exercices</div>
+              </div>
+              <div class="hqs">
+                <div class="hqs-val">${totalSets}</div>
+                <div class="hqs-label">séries</div>
+              </div>
+              <div class="hqs">
+                <div class="hqs-val" style="color:var(--accent)">${maxKg}kg</div>
+                <div class="hqs-label">max</div>
+              </div>
+              <div class="hqs">
+                <div class="hqs-val">${totalVol >= 1000 ? (totalVol/1000).toFixed(1)+'T' : totalVol+'kg'}</div>
+                <div class="hqs-label">volume</div>
+              </div>
+            </div>
+          </div>
+          <div class="history-chevron">▼</div>
+        </div>
+        <div class="history-ex-chips">${chips}</div>
+        <div class="history-body" id="hbody-${entry.id}">
+          ${exRows}
+          ${entry.notes ? `<div class="history-notes-row"><div class="history-notes-icon">📝</div><div class="history-notes-text">${entry.notes}</div></div>` : ''}
+          <div class="history-card-actions">
+            <button class="pr-save-inline" onclick="openEditDrawer(${entry.id}, event)">✏️ Modifier</button>
+            <button class="delete-btn" onclick="deleteEntry(${entry.id}, event)">🗑 Supprimer</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+
+  el.innerHTML = html;
+}
+
+function parseDate(str) {
+  const [d, m, y] = str.split('/');
+  return new Date(+y, +m - 1, +d);
+}
+
+function getMonday(d) {
+  const day = d.getDay() || 7;
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - day + 1);
+  return mon;
+}
+
+function toggleHistory(id) {
+  const e = document.getElementById(`hentry-${id}`);
+  const b = document.getElementById(`hbody-${id}`);
+  const isOpen = e.classList.toggle('open');
+  b.style.display = isOpen ? 'block' : 'none';
+}
+
+function deleteEntry(id, evt) {
+  evt.stopPropagation();
+  history = history.filter(e => e.id !== id);
+  localStorage.setItem('mass_history', JSON.stringify(history));
+  renderHistory();
+  showToast('Séance supprimée', '');
+}
+
+// ══════════════════════════════════════════
+// EDIT DRAWER
+// ══════════════════════════════════════════
+let editingEntryId = null;
+
+function openEditDrawer(id, evt) {
+  evt.stopPropagation();
+  const entry = history.find(e => e.id === id);
+  if (!entry) return;
+  editingEntryId = id;
+
+  const SESSION_EMOJI = { push: '🔴', pull: '🔵', legs: '🟢', lower: '🟢', upper: '🟣' };
+  document.getElementById('edit-drawer-title').textContent = `✏️ ${SESSION_EMOJI[entry.session] || ''} ${entry.label}`;
+
+  let body = '';
+
+  // Date field
+  body += `<div class="edit-section">
+    <div class="edit-section-title">📅 Date de la séance</div>
+    <input class="edit-date-input" id="edit-date" type="text" value="${entry.date}" placeholder="JJ/MM/AAAA">
+  </div>`;
+
+  // Each exercise
+  Object.entries(entry.exercises).forEach(([exId, ex]) => {
+    const rowsHtml = ex.sets.map((s, i) => `
+      <div class="edit-set-row" id="edit-setrow-${exId}-${i}">
+        <div class="edit-set-num">${i + 1}</div>
+        <input class="edit-input" placeholder="kg" type="number" step="0.5" min="0"
+          id="edit-kg-${exId}-${i}" value="${s.kg}">
+        <input class="edit-input" placeholder="reps" type="number" step="1" min="0"
+          id="edit-rep-${exId}-${i}" value="${s.reps}">
+        <button class="edit-del-set" onclick="removeEditSet('${exId}', ${i})" title="Supprimer cette série">✕</button>
+      </div>`).join('');
+
+    body += `<div class="edit-section" id="edit-ex-${exId}">
+      <div class="edit-section-title">🏋️ Exercice</div>
+      <div class="edit-ex-name">${ex.name}</div>
+      <div style="display:grid;grid-template-columns:28px 1fr 1fr 32px;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:6px">
+        <div></div>
+        <div style="font-size:0.68rem;color:var(--text3);text-align:center;text-transform:uppercase;letter-spacing:0.5px">Charge (kg)</div>
+        <div style="font-size:0.68rem;color:var(--text3);text-align:center;text-transform:uppercase;letter-spacing:0.5px">Reps</div>
+        <div></div>
+      </div>
+      <div id="edit-sets-${exId}">${rowsHtml}</div>
+      <button class="edit-add-set-btn" onclick="addEditSet('${exId}')">+ Ajouter une série</button>
+    </div>`;
+  });
+
+  // Notes
+  body += `<div class="edit-section">
+    <div class="edit-section-title">📝 Notes</div>
+    <textarea class="edit-notes-input" id="edit-notes" placeholder="Ressenti, fatigue, remarques...">${entry.notes || ''}</textarea>
+  </div>`;
+
+  document.getElementById('edit-drawer-body').innerHTML = body;
+  document.getElementById('edit-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditDrawer(evt) {
+  if (evt.target === document.getElementById('edit-overlay')) closeEditDrawerDirect();
+}
+function closeEditDrawerDirect() {
+  document.getElementById('edit-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  editingEntryId = null;
+}
+
+function removeEditSet(exId, idx) {
+  const container = document.getElementById(`edit-sets-${exId}`);
+  const row = document.getElementById(`edit-setrow-${exId}-${idx}`);
+  if (row) row.remove();
+  // Re-number visually
+  container.querySelectorAll('.edit-set-row').forEach((r, i) => {
+    r.id = `edit-setrow-${exId}-${i}`;
+    r.querySelector('.edit-set-num').textContent = i + 1;
+    r.querySelector(`[id^="edit-kg-${exId}-"]`).id = `edit-kg-${exId}-${i}`;
+    r.querySelector(`[id^="edit-rep-${exId}-"]`).id = `edit-rep-${exId}-${i}`;
+    r.querySelector('.edit-del-set').setAttribute('onclick', `removeEditSet('${exId}', ${i})`);
+  });
+}
+
+function addEditSet(exId) {
+  const container = document.getElementById(`edit-sets-${exId}`);
+  const idx = container.querySelectorAll('.edit-set-row').length;
+  const div = document.createElement('div');
+  div.className = 'edit-set-row';
+  div.id = `edit-setrow-${exId}-${idx}`;
+  div.innerHTML = `
+    <div class="edit-set-num">${idx + 1}</div>
+    <input class="edit-input" placeholder="kg" type="number" step="0.5" min="0" id="edit-kg-${exId}-${idx}">
+    <input class="edit-input" placeholder="reps" type="number" step="1" min="0" id="edit-rep-${exId}-${idx}">
+    <button class="edit-del-set" onclick="removeEditSet('${exId}', ${idx})" title="Supprimer">✕</button>`;
+  container.appendChild(div);
+}
+
+function saveEdits() {
+  const entry = history.find(e => e.id === editingEntryId);
+  if (!entry) return;
+
+  // Save date
+  const newDate = document.getElementById('edit-date').value.trim();
+  if (newDate) entry.date = newDate;
+
+  // Save notes
+  entry.notes = document.getElementById('edit-notes').value;
+
+  // Save each exercise sets
+  Object.entries(entry.exercises).forEach(([exId, ex]) => {
+    const container = document.getElementById(`edit-sets-${exId}`);
+    if (!container) return;
+    const rows = container.querySelectorAll('.edit-set-row');
+    const newSets = [];
+    rows.forEach((_, i) => {
+      const kg = parseFloat(document.getElementById(`edit-kg-${exId}-${i}`)?.value);
+      const reps = parseFloat(document.getElementById(`edit-rep-${exId}-${i}`)?.value);
+      if (kg && reps) newSets.push({ kg, reps, done: true });
+    });
+    if (newSets.length) ex.sets = newSets;
+  });
+
+  localStorage.setItem('mass_history', JSON.stringify(history));
+  closeEditDrawerDirect();
+  renderHistory();
+  showToast('✓ Séance modifiée !', 'good');
+}
+
+// ══════════════════════════════════════════
+// STATS PAGE
+// ══════════════════════════════════════════
+function renderStats() {
+  // Global stats
+  const totalSessions = history.length;
+  const totalSets = history.reduce((acc, e) => acc + Object.values(e.exercises).reduce((a, ex) => a + ex.sets.length, 0), 0);
+  const totalVol = history.reduce((acc, e) => acc + Object.values(e.exercises).reduce((a, ex) => a + ex.sets.reduce((s, st) => s + st.kg * st.reps, 0), 0), 0);
+  const totalPrs = Object.keys(prs).length;
+
+  document.getElementById('global-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Séances</div><div class="stat-value">${totalSessions}</div><div class="stat-sub">au total</div></div>
+    <div class="stat-card"><div class="stat-label">Séries validées</div><div class="stat-value">${totalSets}</div><div class="stat-sub">au total</div></div>
+    <div class="stat-card"><div class="stat-label">Volume total</div><div class="stat-value">${(totalVol/1000).toFixed(1)}T</div><div class="stat-sub">tonnes soulevées</div></div>
+    <div class="stat-card"><div class="stat-label">PRs enregistrés</div><div class="stat-value">${totalPrs}</div><div class="stat-sub">records</div></div>`;
+
+  // Chart exercise select
+  const allExIds = new Set();
+  history.forEach(e => Object.keys(e.exercises).forEach(id => allExIds.add(id)));
+  const sel = document.getElementById('chart-ex-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Choisir un exercice —</option>';
+  allExIds.forEach(id => {
+    const name = getExName(id);
+    sel.innerHTML += `<option value="${id}" ${id === prev ? 'selected':''}>${name}</option>`;
+  });
+  renderChart();
+
+  // PR Table — editable
+  const tbody = document.getElementById('pr-tbody');
+  if (!Object.keys(prs).length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text3);font-size:0.8rem;padding:12px">Aucun PR enregistré</td></tr>';
+    return;
+  }
+  tbody.innerHTML = Object.entries(prs).map(([id, pr]) => `
+    <tr>
+      <td style="font-size:0.82rem">${getExName(id)}</td>
+      <td><input class="pr-edit-input" id="pr-input-${id}" type="number" step="0.5" value="${pr.kg}" min="0"></td>
+      <td style="color:var(--text3);font-size:0.75rem">${pr.date}</td>
+      <td style="display:flex;gap:5px;align-items:center">
+        <button class="pr-save-inline" onclick="savePrEdit('${id}')">✓</button>
+        <button class="pr-del-btn" onclick="deletePr('${id}')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+function savePrEdit(id) {
+  const val = parseFloat(document.getElementById(`pr-input-${id}`)?.value);
+  if (!val || val <= 0) { showToast('Valeur invalide', ''); return; }
+  prs[id] = { kg: val, date: todayStr() };
+  localStorage.setItem('mass_prs', JSON.stringify(prs));
+  renderStats();
+  showToast(`✓ PR mis à jour : ${val} kg`, 'good');
+}
+
+function deletePr(id) {
+  delete prs[id];
+  localStorage.setItem('mass_prs', JSON.stringify(prs));
+  renderStats();
+  showToast('PR supprimé', '');
+}
+
+function renderChart() {
+  const exId = document.getElementById('chart-ex-select').value;
+  const container = document.getElementById('mini-chart');
+  if (!exId) { container.innerHTML = '<span style="color:var(--text3);font-size:0.8rem;margin:auto">Sélectionne un exercice</span>'; return; }
+
+  // Collect data points: average kg per session
+  const points = [];
+  [...history].reverse().forEach(entry => {
+    if (entry.exercises[exId]) {
+      const sets = entry.exercises[exId].sets;
+      const avgKg = sets.reduce((a, s) => a + s.kg, 0) / sets.length;
+      points.push({ date: entry.date, kg: avgKg, maxKg: Math.max(...sets.map(s => s.kg)) });
+    }
+  });
+
+  if (!points.length) { container.innerHTML = '<span style="color:var(--text3);font-size:0.8rem;margin:auto">Pas encore de données</span>'; return; }
+
+  const maxKg = Math.max(...points.map(p => p.maxKg));
+  container.innerHTML = points.slice(-10).map(p => {
+    const h = Math.round((p.maxKg / maxKg) * 90);
+    return `<div class="bar-wrap">
+      <div class="bar-val">${p.maxKg}kg</div>
+      <div class="bar" style="height:${h}px"></div>
+      <div class="bar-label">${p.date.slice(5)}</div>
+    </div>`;
+  }).join('');
+}
+
+function getExName(id) {
+  for (const s of Object.values(SESSIONS)) {
+    const ex = s.exercises.find(e => e.id === id);
+    if (ex) return ex.name;
+  }
+  return id;
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function toggleEx(exId) {
+  const card = document.getElementById(`excard-${exId}`);
+  card.classList.toggle('open');
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'historique') renderHistory();
+  if (name === 'stats') renderStats();
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function todayStr() {
+  return new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+let toastTimeout;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderSession();
+</script>
+</body>
+</html>
